@@ -22,6 +22,7 @@ list_of_names = [
 
 API_KEY = os.getenv("API_KEY")
 region = "na"
+currentSeason = 'e6a3'
 
 with open("./output.csv", "w") as f:
   f.write("IGN,RiotID,Tag,puuid,current rank,highest rank,elo\n")
@@ -29,10 +30,6 @@ with open("./output.csv", "w") as f:
     tokenized = x.split("#")
     name = tokenized[0]
     tag = tokenized[1]
-    # response = requests.get(
-    #   f"https://api.henrikdev.xyz/valorant/v2/mmr/{region}/{name}/{tag}",
-    #   headers={"Authorization":API_KEY, "Accept":"*/*"},
-    # )
     try:
       data = getMMRData(region, name, tag)
       currentData = data["current_data"]

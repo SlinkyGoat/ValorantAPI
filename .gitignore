@@ -160,5 +160,5 @@ cython_debug/
 #.idea/
 
 # any files created during testing or output of project
-.csv
-.json
+*.csv
+*.json
