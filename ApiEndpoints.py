@@ -8,14 +8,30 @@ load_dotenv()
 API_KEY = os.getenv("API_KEY")
 
 
-def raiseHTTPError(response: Response, valuesCalled=""):
+class APIError(Exception):
+  """Custom Exception for API errors
+
+  Parameters:
+    status_code (int): The HTTP status code of the error.
+    message (str): The error message returned by the API.
+    details (str): Additional details about the error.
+    api_called (str): The API endpoint or method that was called (optional).
+  
+  """
+  def __init__(self, status_code: int, message: str, details: str, api_called: str = "unkown"):
+    self.status_code  = status_code
+    self.message = message
+    self.details = details
+    self.api_called = api_called
+    super().__init__(f"APIError {status_code}: {message} - {details}. Called from {api_called}")
+
+
+def raiseAPIError(response: Response, valuesCalled=""):
   data: dict = response.json()
-  errorString = f"""Error: {response.status_code}
-    Message: {data["errors"][0]["message"]}
-    Details: {data["errors"][0]["details"]}"""
-  if valuesCalled != "":
-    errorString += f"\n\tAPI Called: {valuesCalled}"
-  raise requests.exceptions.HTTPError(errorString)
+  status_code = response.status_code
+  message = data["errors"][0]["message"]
+  details = data["errors"][0]["details"]
+  raise APIError(status_code, message, details, valuesCalled)
 
 
 def getAccountData(name: str, tag: str) -> dict:
@@ -31,7 +47,7 @@ def getAccountData(name: str, tag: str) -> dict:
 
   Raises
   ------
-    requests.exceptions.HTTPError
+    APIError
       If response did not have a 200 status. Includes the status, message, and details
       as well as the method call with its parameters
   
@@ -41,7 +57,7 @@ def getAccountData(name: str, tag: str) -> dict:
     headers={"Authorization":API_KEY, "Accept":"*/*"},
   )
   if response.status_code != 200:
-    raiseHTTPError(response, f"getAccountData({name}, {tag})")
+    raiseAPIError(response, f"getAccountData({name}, {tag})")
 
   return response.json()["data"]
 
@@ -56,7 +72,7 @@ def getMatchData(matchid: str) -> dict:
 
   Raises
   ------
-    requests.exceptions.HTTPError
+    APIError
       If response did not have a 200 status. Includes the status, message, and details
       as well as the method call with its parameters
   """
@@ -66,7 +82,7 @@ def getMatchData(matchid: str) -> dict:
     headers={"Authorization":API_KEY,"Accept":"*/*"},
   )
   if response.status_code != 200:
-    raiseHTTPError(response, f"getMatchData({matchid})")
+    raiseAPIError(response, f"getMatchData({matchid})")
   return response.json()["data"]
 
 
@@ -93,7 +109,7 @@ def getMMRData(region: str, name: str, tag: str) -> dict:
 
   Raises
   ------
-    requests.exceptions.HTTPError
+    API
       If response did not have a 200 status. Includes the status, message, and details
       as well as the method call with its parameters
   
@@ -103,5 +119,5 @@ def getMMRData(region: str, name: str, tag: str) -> dict:
     headers={"Authorization":API_KEY,"Accept":"*/*"},
   )
   if response.status_code != 200:
-    raiseHTTPError(response, f"getMMRData({region}, {name}, {tag})")
+    raiseAPIError(response, f"getMMRData({region}, {name}, {tag})")
   return response.json()["data"]
