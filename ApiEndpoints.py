@@ -109,7 +109,7 @@ def getMMRData(region: str, name: str, tag: str) -> dict:
 
   Raises
   ------
-    API
+    APIError
       If response did not have a 200 status. Includes the status, message, and details
       as well as the method call with its parameters
   

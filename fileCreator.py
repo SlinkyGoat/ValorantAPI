@@ -43,6 +43,7 @@ def createAccountFile(selected_options: list, users: list[str]):
     users (list[str]):
       A list of the user's IGNs to grab data from the API and write to file.
   """
+
   data_points = {
     "IGN": lambda data: f"{data["name"]}#{data["tag"]}",
     "RiotID": lambda data: f"{data["name"]}",
@@ -71,8 +72,43 @@ def createMatchFile(selected_options: list, users: list[str]):
   pass
 
 
-def createMMRFile(selected_options: list, user: list[str]):
-  pass
+def createMMRFile(selected_options: list, users: list[str]):
+  """Creates file with the returned MMR data
+
+  Parameters
+  ----------
+    selected_options (list):
+      All possible options for user to choose from to be written to the outputted file.
+    
+    users (list[str]):
+      A list of the user's IGNs to grab data from the API and write to file.
+      Options include: IGN, RiotID, Tag, puuid, Current Rank, Elo, Highest Rank
+  """
+
+  data_points = {
+    "IGN": lambda data: f"{data["name"]}#{data["tag"]}",
+    "RiotID": lambda data: f"{data["name"]}",
+    "Tag": lambda data: f"{data["tag"]}",
+    "puuid": lambda data: f"{data["puuid"]}",
+    "Current Rank": lambda data: f"{data["current_data"]["currenttierpatched"]}",
+    "Elo": lambda data: f"{data["current_data"]["elo"]}",
+    "Highest Rank": lambda data: f"{data["highest_rank"]["patched_tier"]}",
+  }
+  with open(downloads_path + "\\MMROutput.csv", "w") as file:
+    file.write(f"{','.join(selected_options)}\n")
+    for user in users:
+      tokenized_name = user.split("#")
+      try:
+        data = getMMRData(region, tokenized_name[0], tokenized_name[1])
+      except APIError as error:
+        print(f"ERROR: {error}")
+        file.write(f"{user},ERROR: {error.status_code} - MESSAGE: {error.message} - DETAILS: {error.details}\n")
+      row = []
+      for option in selected_options:
+        row.append(data_points[option](data))
+      file.write(f"{','.join(row)}\n")
+  file.close()
+
 
 # with open(downloads_path, "w") as file:
 #   previousSeasonsToRecord = getPreviousSeasons(29, 3)
