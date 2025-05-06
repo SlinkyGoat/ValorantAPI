@@ -32,6 +32,17 @@ data = {}
 row: list[str] = []
 
 def createAccountFile(selected_options: list, users: list[str]):
+  """Creates file with the returned Accounts data
+
+  Parameters
+  ----------
+    selected_options (list):
+      All possible options for user to choose from to be written to the outputted file.
+      Options include: IGN, RiotID, Tag, puuid, Account Level.
+    
+    users (list[str]):
+      A list of the user's IGNs to grab data from the API and write to file.
+  """
   data_points = {
     "IGN": lambda data: f"{data["name"]}#{data["tag"]}",
     "RiotID": lambda data: f"{data["name"]}",
@@ -39,7 +50,7 @@ def createAccountFile(selected_options: list, users: list[str]):
     "puuid": lambda data: f"{data["puuid"]}",
     "Account Level": lambda data: f"{str(data["account_level"])}"
   }
-  with open(downloads_path + "\\output.csv", "w") as file:
+  with open(downloads_path + "\\AccountOutput.csv", "w") as file:
     file.write(f"{','.join(selected_options)}\n")  # Writes first line of csv files, ex. IGN,Username,Tag,puuid,Current Rank,Highest Rank
     for user in users:
       tokenized_name = user.split("#")
