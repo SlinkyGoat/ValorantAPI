@@ -28,8 +28,15 @@ API_KEY = os.getenv("API_KEY")
 downloads_path = str(Path.home() / "Downloads")
 region = "na"
 current_season = 'e10a2'
+current_season_int = 29
 data = {}
 row: list[str] = []
+
+
+# NOTE: almost all lines in each method are exactly the same. If project grows
+#       consider creating another method that contains the repeated code to 
+#       follow DRY coding conventions
+
 
 def createAccountFile(selected_options: list, users: list[str]):
   """Creates file with the returned Accounts data
@@ -82,7 +89,7 @@ def createMMRFile(selected_options: list, users: list[str]):
     
     users (list[str]):
       A list of the user's IGNs to grab data from the API and write to file.
-      Options include: IGN, RiotID, Tag, puuid, Current Rank, Elo, Highest Rank
+      Options include: IGN, RiotID, Tag, puuid, Current Rank, Elo, Highest Rank, Previous Ranks
   """
 
   data_points = {
@@ -93,9 +100,16 @@ def createMMRFile(selected_options: list, users: list[str]):
     "Current Rank": lambda data: f"{data["current_data"]["currenttierpatched"]}",
     "Elo": lambda data: f"{data["current_data"]["elo"]}",
     "Highest Rank": lambda data: f"{data["highest_rank"]["patched_tier"]}",
+    "Previous Ranks": lambda data: f"{data["by_season"][previous_seasons[0]]["final_rank_patched"]},{data["by_season"][previous_seasons[1]]["final_rank_patched"]},{data["by_season"][previous_seasons[2]]["final_rank_patched"]}",  # TODO return all 3 previous season ranks separated by commas
   }
   with open(downloads_path + "\\MMROutput.csv", "w") as file:
-    file.write(f"{','.join(selected_options)}\n")
+    if "Previous Ranks" in selected_options:
+      temp = selected_options.copy()
+      previous_seasons = getPreviousSeasons(current_season_int, 3)
+      temp[temp.index("Previous Ranks")] = ','.join(previous_seasons)  # shows the previous 3 season ranks
+      file.write(f"{','.join(temp)}\n")
+    else:
+      file.write(f"{','.join(selected_options)}\n")
     for user in users:
       tokenized_name = user.split("#")
       try:
@@ -109,6 +123,9 @@ def createMMRFile(selected_options: list, users: list[str]):
       file.write(f"{','.join(row)}\n")
   file.close()
 
+
+myOptions = ["IGN", "puuid", "Current Rank", "Highest Rank", "Elo", "Previous Ranks"]
+createMMRFile(myOptions, list_of_names)
 
 # with open(downloads_path, "w") as file:
 #   previousSeasonsToRecord = getPreviousSeasons(29, 3)

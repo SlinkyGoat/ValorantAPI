@@ -14,6 +14,9 @@ def getPreviousSeasons(activeSeason: int, numOfPreviousSeasons: int) -> list:
   numOfPreviousSeasons : int
     This value represents the number of seasons you want to go back
   
+  Return
+  ------
+    Returns a list with the string value of the numOfPreviousSeasons previous seasons
   """
   seasons = ["e1a1", "e1a2", "e1a3", "e2a1", "e2a2", "e2a3", 
            "e3a1", "e3a2", "e3a3", "e4a1", "e4a2", "e4a3", 
