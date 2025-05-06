@@ -162,3 +162,4 @@ cython_debug/
 # any files created during testing or output of project
 *.csv
 *.json
+exampleFiles.py

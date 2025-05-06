@@ -46,6 +46,30 @@ def getAccountData(name: str, tag: str) -> dict:
   return response.json()["data"]
 
 
+def getMatchData(matchid: str) -> dict:
+  """Gets data from a single match
+
+  Parameters
+  ----------
+  matchid : str
+    the unique identifier for the match whose data is to be pulled
+
+  Raises
+  ------
+    requests.exceptions.HTTPError
+      If response did not have a 200 status. Includes the status, message, and details
+      as well as the method call with its parameters
+  """
+
+  response = requests.get(
+    f"https://api.henrikdev.xyz/valorant/v2/match/{matchid}",
+    headers={"Authorization":API_KEY,"Accept":"*/*"},
+  )
+  if response.status_code != 200:
+    raiseHTTPError(response, f"getMatchData({matchid})")
+  return response.json()["data"]
+
+
 def getMMRData(region: str, name: str, tag: str) -> dict:
   """Gets a more detailed response for all MMR data
   
