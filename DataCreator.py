@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv, dotenv_values
 import requests
+import json
 from pathlib import Path
 
 from ApiEndpoints import (
@@ -75,8 +76,35 @@ def createAccountFile(selected_options: list, users: list[str]):
   file.close()
 
 
-def createMatchFile(selected_options: list, users: list[str]):
-  pass
+def createMatchFile(selected_options: list, match_id: str):
+  """Creates file with the returned Accounts data
+
+  Parameters
+  ----------
+    selected_options (list):
+      All possible options for user to choose from to be written to the outputted file.
+      Options include: 
+    
+    users (list[str]):
+      A list of the user's IGNs to grab data from the API and write to file.
+  """
+  # TODO figure out how to add team name to output
+  # TODO debug, not printing anything after first line, print to console to see what is being put into parsed data if anything
+  with open(downloads_path + "\\MatchOutput.csv", "w") as file:
+    file.write(f"{','.join(selected_options)}\n")
+    try:
+      data = getMatchData(match_id)
+    except APIError as error:
+      print(f"ERROR: {error}")
+      file.write(f"ERROR: {error.status_code} - MESSAGE: {error.message} - DETAILS: {error.details}\n")
+    parsed_data = parseMatchData(data)
+    row = []
+    for player_data in parsed_data:
+      for option in selected_options:
+        row.append(parsed_data[player_data][option])
+      file.write(f"{','.join(row)}\n")
+      row = []
+  file.close()
 
 
 def createMMRFile(selected_options: list, users: list[str]):
@@ -124,34 +152,6 @@ def createMMRFile(selected_options: list, users: list[str]):
   file.close()
 
 
-myOptions = ["IGN", "puuid", "Current Rank", "Highest Rank", "Elo", "Previous Ranks"]
-createMMRFile(myOptions, list_of_names)
-
-# with open(downloads_path, "w") as file:
-#   previousSeasonsToRecord = getPreviousSeasons(29, 3)
-#   file.write("IGN,RiotID,Tag,puuid,current rank,highest rank,elo")
-#   for season in previousSeasonsToRecord:
-#     file.write(f",{season}")
-#   file.write("\n")
-#   for x in list_of_names:
-#     tokenized = x.split("#")
-#     name = tokenized[0]
-#     tag = tokenized[1]
-#     try:
-#       data = getMMRData(region, name, tag)
-#       currentData = data["current_data"]
-#       seasonData = data["by_season"]
-
-#       IGN = f"{name}#{tag}"
-#       puuid = data["puuid"]
-#       currentRank = currentData["currenttierpatched"]
-#       highestRank = data["highest_rank"]["patched_tier"]
-#       elo = currentData["elo"]
-#       file.write(f"{IGN},{name},{tag},{puuid},{currentRank},{highestRank},{elo}")
-#       for season in previousSeasonsToRecord:
-#         file.write(f",{seasonData[season]["final_rank_patched"]}")
-#       file.write("\n")
-#     except requests.exceptions.HTTPError as error:
-#       print(error)
-#       file.write(f"{IGN},ERROR\n")
+myOptions = ["IGN", "RiotID", "Tag", "Agent", "Score Total", "Score Per Round", "Total Kills", "Total Deaths", "Total Assists", "KD Rate", "Total Plants", "Total Defuses", "KAST", "Headshot %", "First Kills", "First Deaths", "First Kill/Death Ratio"]
+createMatchFile(myOptions, "6e639e2a-fa38-4c94-9df6-5a2ff9feb372")
       
