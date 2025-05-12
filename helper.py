@@ -108,6 +108,7 @@ def parseMatchData(match_data: dict) -> dict:
   """
   parsed_data: dict = {}
   players: list[dict] = match_data["players"]["all_players"]
+  round_data: list = match_data["rounds"]
   for player in players:
     player_entry = {}
     player_entry["IGN"] = f"{player["name"]}#{player["tag"]}"
@@ -129,6 +130,21 @@ def parseMatchData(match_data: dict) -> dict:
     player_entry["First Kills"] = "0"
     player_entry["First Deaths"] = "0"
     player_entry["First Kill/Death Ratio"] = "0"
+    # Add round by round column names, data is entered later
+    # NO DATA string used for debugging in case value is not filled in
+    number_of_rounds = match_data["metadata"]["rounds_played"]
+    for round_number in range(number_of_rounds):
+      player_entry[f"Round {round_number + 1} Kills"] = "0"
+      player_entry[f"Round {round_number + 1} Deaths"] = "0"
+      player_entry[f"Round {round_number + 1} Assists"] = "0"
+      player_entry[f"Round {round_number + 1} Traded"] = "No"
+      player_entry[f"Round {round_number + 1} Team Kills"] = "0"
+      player_entry[f"Round {round_number + 1} Plant"] = "No"
+      player_entry[f"Round {round_number + 1} Defuse"] = "No"
+      player_entry[f"Round {round_number + 1} Score"] = "0"
+      player_entry[f"Round {round_number + 1} Loadout Value"] = "NO DATA"
+      player_entry[f"Round {round_number + 1} Weapon"] = "NO DATA"
+      player_entry[f"Round {round_number + 1} Armor"] = "NO DATA"
     # Add player's data to parsed_data
     parsed_data[player_entry["IGN"]] = player_entry
   
@@ -141,28 +157,43 @@ def parseMatchData(match_data: dict) -> dict:
   for player in parsed_data:
     KAST[player] = 0
   
+  counter = 0
   for game_round in match_data["rounds"]:
     # adjusts the plants/defuses
     if game_round["bomb_planted"]:
-      parsed_data[game_round["plant_events"]["planted_by"]["display_name"]]["Total Plants"] = str(
-        int(parsed_data[game_round["plant_events"]["planted_by"]["display_name"]]["Total Plants"]) + 1) # Add 1 to planter's Total Plants value
+      planted_by_player_name = game_round["plant_events"]["planted_by"]["display_name"]
+      parsed_data[planted_by_player_name]["Total Plants"] = str(
+        int(parsed_data[planted_by_player_name]["Total Plants"]) + 1) # Add 1 to planter's Total Plants value
+      parsed_data[planted_by_player_name][f"Round {counter + 1} Plant"] = "Yes"
     if game_round["bomb_defused"]:
-      parsed_data[game_round["defuse_events"]["defused_by"]["display_name"]]["Total Defuses"] = str(
-        int(parsed_data[game_round["defuse_events"]["defused_by"]["display_name"]]["Total Defuses"]) + 1) # Add 1 to defuser's Total Defuses value
+      defused_by_player_name = game_round["defuse_events"]["defused_by"]["display_name"]
+      parsed_data[defused_by_player_name]["Total Defuses"] = str(
+        int(parsed_data[defused_by_player_name]["Total Defuses"]) + 1) # Add 1 to defuser's Total Defuses value
+      parsed_data[defused_by_player_name][f"Round {counter + 1} Defuse"] = "Yes"
     
     for player_stat in game_round["player_stats"]:
+      player_name = player_stat["player_display_name"]
       if player_stat["kills"] > 0:
         KAST[player_stat["player_display_name"]] += 1
         for kill_event in player_stat["kill_events"]:
           for assistant in kill_event["assistants"]:
             KAST[assistant["assistant_display_name"]] += 1
           KAST[kill_event["victim_display_name"]] -= 1 # Subtract 1 from player's KAST if they died (-1 means they did nothing that round)
+          parsed_data[kill_event["victim_display_name"]][f"Round {counter + 1} Deaths"] = "1"
           if isTraded(game_round["player_stats"], kill_event["killer_display_name"], kill_event["kill_time_in_round"]):
             KAST[kill_event["victim_display_name"]] += 1
+            parsed_data[player_stat["player_display_name"]][f"Round {counter + 1} Traded"] = "Yes"
+      # round by round data
+      parsed_data[player_name][f"Round {counter + 1} Kills"] = player_stat["kills"]
+      parsed_data[player_name][f"Round {counter + 1} Score"] = player_stat["score"]
+      parsed_data[player_name][f"Round {counter + 1} Loadout Value"] = player_stat["economy"]["loadout_value"]
+      parsed_data[player_name][f"Round {counter + 1} Weapon"] = player_stat["economy"]["weapon"]["name"]
+      parsed_data[player_name][f"Round {counter + 1} Armor"] = player_stat["economy"]["armor"]["name"]
     for player in KAST:
       if KAST[player] >= 0:
         parsed_data[player]["KAST"] = str(int(parsed_data[player]["KAST"]) + 1)
       KAST[player] = 0
+    counter += 1
   for player in parsed_data:
     parsed_data[player]["KAST"] = str(math.floor((int(parsed_data[player]["KAST"]) / int(match_data["metadata"]["rounds_played"])) * 100))
 
@@ -183,4 +214,22 @@ def parseMatchData(match_data: dict) -> dict:
     if first_deaths == 0:
       first_deaths = 1  # set to 1 to prevent divide by 0 error
     parsed_data[player]["First Kill/Death Ratio"] = str(round(first_kills / first_deaths, 1))
-  return parsed_data
+
+  # Add round by round data
+  round_number = 1
+  for game_round in round_data:
+    # Kills
+    # deaths
+    # assists
+    # team kill
+    # score
+    # loadout value
+    # weapon
+    # armor
+    
+    round_number += 1
+  
+  data: list = []
+  for player in parsed_data:
+    data.append(parsed_data[player])
+  return data
