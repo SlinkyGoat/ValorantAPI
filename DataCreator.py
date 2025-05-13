@@ -84,7 +84,10 @@ def createMatchFile(selected_options: list, match_id: str):
   ----------
     selected_options (list):
       All possible options for user to choose from to be written to the outputted file.
-      Options include: 
+      Options include: IGN, RiotID, Tag, Team Name, Agent, Score Total, Score Per Round, Total Kills, Total Deaths,
+        Total Assists, KD Rate, Total Points, Total Defuses, KAST, Headshot %, First Kills, First Deaths, First Kill/Death Ratio
+      Round-by-round datapoints always start with the 'Round:' prefix. These options include:
+        Kills, Deaths, Assists, Traded, Team Kills, Plant, Defuse, Score, Loadout Value, Weapon, Armor
     
     users (list[str]):
       A list of the user's IGNs to grab data from the API and write to file.
@@ -97,7 +100,7 @@ def createMatchFile(selected_options: list, match_id: str):
     print(f"ERROR: {error}")
   parsed_data: list = parseMatchData(data)
   parsed_data.insert(0, selected_options)
-  createCSVFile(parsed_data, "MatchOutput.csv")
+  createCSVFile(parsed_data, "MatchOutput.csv", rounds=data["metadata"]["rounds_played"])
 
 
 def createMMRFile(selected_options: list, users: list[str]):
@@ -145,6 +148,6 @@ def createMMRFile(selected_options: list, users: list[str]):
   file.close()
 
 
-myOptions = ["IGN", "RiotID", "Tag", "Score Total", "Score Per Round", "Total Kills", "Total Deaths", "Total Assists", "KD Rate", "Total Plants", "Total Defuses", "KAST", "Headshot %", "First Kills", "First Deaths", "First Kill/Death Ratio"]
+myOptions = ["IGN", "RiotID", "Tag", "Agent", "Score Total", "Score Per Round", "Total Kills", "Total Deaths", "Total Assists", "KD Rate", "Total Plants", "Total Defuses", "KAST", "Headshot %", "First Kills", "First Deaths", "First Kill/Death Ratio", "Round:Kills", "Round:Deaths", "Round:Assists", "Round:Traded", "Round:Team Kills", "Round:Plant", "Round:Defuse", "Round:Score", "Round:Loadout Value", "Round:Weapon", "Round:Armor"]
 createMatchFile(myOptions, "6e639e2a-fa38-4c94-9df6-5a2ff9feb372")
       

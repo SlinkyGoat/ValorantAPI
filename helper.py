@@ -178,17 +178,26 @@ def parseMatchData(match_data: dict) -> dict:
         for kill_event in player_stat["kill_events"]:
           for assistant in kill_event["assistants"]:
             KAST[assistant["assistant_display_name"]] += 1
+            parsed_data[assistant["assistant_display_name"]][f"Round {counter + 1} Assists"] = str(int(parsed_data[assistant["assistant_display_name"]][f"Round {counter + 1} Assists"]) + 1)
           KAST[kill_event["victim_display_name"]] -= 1 # Subtract 1 from player's KAST if they died (-1 means they did nothing that round)
           parsed_data[kill_event["victim_display_name"]][f"Round {counter + 1} Deaths"] = "1"
           if isTraded(game_round["player_stats"], kill_event["killer_display_name"], kill_event["kill_time_in_round"]):
             KAST[kill_event["victim_display_name"]] += 1
             parsed_data[player_stat["player_display_name"]][f"Round {counter + 1} Traded"] = "Yes"
+          if kill_event["killer_team"] == kill_event["victim_team"]:
+            parsed_data[player_name][f"Round {counter + 1} Team Kills"] = str(int(parsed_data[player_name][f"Round {counter + 1} Team Kills"]) + 1)
       # round by round data
-      parsed_data[player_name][f"Round {counter + 1} Kills"] = player_stat["kills"]
-      parsed_data[player_name][f"Round {counter + 1} Score"] = player_stat["score"]
-      parsed_data[player_name][f"Round {counter + 1} Loadout Value"] = player_stat["economy"]["loadout_value"]
-      parsed_data[player_name][f"Round {counter + 1} Weapon"] = player_stat["economy"]["weapon"]["name"]
-      parsed_data[player_name][f"Round {counter + 1} Armor"] = player_stat["economy"]["armor"]["name"]
+      parsed_data[player_name][f"Round {counter + 1} Kills"] = str(player_stat["kills"])
+      parsed_data[player_name][f"Round {counter + 1} Score"] = str(player_stat["score"])
+      parsed_data[player_name][f"Round {counter + 1} Loadout Value"] = str(player_stat["economy"]["loadout_value"])
+      weapon = player_stat["economy"]["weapon"]["name"]
+      if weapon is None:
+        weapon = "None"
+      parsed_data[player_name][f"Round {counter + 1} Weapon"] = weapon
+      armor = player_stat["economy"]["armor"]["name"]
+      if armor is None:
+        armor = "None"
+      parsed_data[player_name][f"Round {counter + 1} Armor"] = armor
     for player in KAST:
       if KAST[player] >= 0:
         parsed_data[player]["KAST"] = str(int(parsed_data[player]["KAST"]) + 1)
